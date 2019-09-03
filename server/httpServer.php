@@ -6,11 +6,11 @@
  * @date    2019-08-30
  * @author  meijinfeng
  */
+error_reporting(E_ALL ^ E_NOTICE);
 
-function server()
+function server(int $port)
 {
     $host = "0.0.0.0";
-    $port = "12580";
     $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
     $socket !== false ?: trace(socket_strerror(socket_last_error()), true);
     socket_set_option($socket, SOL_SOCKET, SO_REUSEPORT, 1);
@@ -18,12 +18,14 @@ function server()
     $bind !== false ?: trace(socket_strerror(socket_last_error()), true);
     $listen = socket_listen($socket);
     $listen !== false ?: trace(socket_strerror(socket_last_error()), true);
+  
+    return $socket;
 }
 
-function start()
+function start(int $port)
 {
     trace("httpServer building ...");
-    $server = server();
+    $server = server($port);
     trace("httpServer built success");
     trace("waiting request ...");
 
@@ -110,4 +112,10 @@ function trace($msg, bool $exit = false)
     !$exit ?: exit(0);
 }
 
-start();
+// args parse
+$args = array_merge(
+ ["port" => 12580],
+ getopt("", ["port:"])
+);
+
+start($args['port']);
